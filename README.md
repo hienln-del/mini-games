@@ -86,6 +86,16 @@ Generated games must be complete, not demos.
 - A game must never continue in `playing` state after all meaningful content is gone.
 - The launcher entry should use `status: 'Playable'` only after the game passes the mobile and completion checklist.
 
+## Layout And Polish Rules
+
+Generated games must use the full portrait screen intentionally.
+
+- Board games must compute board size from available portrait space; pieces must never overflow grid cells or board bounds.
+- The play area, HUD, objective panel, controls, and feedback area should be balanced so the lower screen is not empty.
+- Match-3 games should reserve lower screen space for useful content: move counter, target progress, selected candy info, booster buttons, combo meter, hint, or level objective.
+- Special-piece effects must feel premium: layered animation, clear direction, particles, glow, sound, and board reaction. A white line or tiny icon alone is not enough.
+- Reject games with overflowing pieces, unused empty bottom panels, cheap-looking special effects, or unclear special-candy behavior.
+
 ## Output Launcher
 
 `output/index.html` is the static library that wires generated games together. It owns the canonical `GAMES` manifest.

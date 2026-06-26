@@ -39,6 +39,8 @@ Use this checklist after an AI generates the single HTML game in `output/`.
 - [ ] Buttons are at least `44px` in both dimensions when visible.
 - [ ] HUD, menus, and instructions fit at `360px` viewport width.
 - [ ] Game is playable at `390x844` and `360x740` portrait viewports.
+- [ ] Top, middle, and bottom screen zones all have clear gameplay purpose.
+- [ ] Lower screen is not mostly empty during gameplay.
 
 ## Startup And Screens
 
@@ -90,7 +92,23 @@ Use this checklist after an AI generates the single HTML game in `output/`.
 - [ ] Game remains playable after mobile viewport resize or browser UI changes.
 - [ ] HUD text remains readable.
 - [ ] No important text overlaps or leaves its container.
+- [ ] Grid or board pieces do not overflow their cells or board bounds.
+- [ ] Selection rings, shadows, glows, and animated pieces stay inside intended containers.
 - [ ] Player, hazards, and rewards are visually distinct.
+
+## Match-3 And Candy Puzzle Quality
+
+- [ ] Board geometry is computed from available portrait space, not guessed with overflowing constants.
+- [ ] Last row and last column fit inside the visible board.
+- [ ] Candies remain readable and touchable at `360px` viewport width.
+- [ ] Bottom section contains useful gameplay UI such as moves, target, selected candy, boosters, combo, hint, or objective.
+- [ ] Board has at least one legal move after cascades settle, or reshuffles clearly.
+- [ ] Input is locked while swap, clear, drop, refill, and cascade animations resolve.
+- [ ] Invalid swaps animate out and back before returning control.
+- [ ] Win/loss is checked after cascades settle.
+- [ ] Special candies have clear visual identity before activation.
+- [ ] Special-candy activation includes anticipation, directional/radial action, affected-cell feedback, particles, sound, and score/combo response.
+- [ ] Special effects look premium and do not rely only on a thin line, tiny icon, or cheap particle puff.
 
 ## Animation, VFX, And Audio
 

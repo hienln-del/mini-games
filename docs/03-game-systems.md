@@ -94,6 +94,35 @@ Flappy-style games must follow these rules:
 - If spawning stops, the game must already be in `won`, `lost`, or another non-playing end state.
 - Do not allow empty scrolling after the last pipe or gate.
 
+## Match-3 System Rules
+
+Match-3 games need stricter board and feedback rules.
+
+Required board rules:
+
+- Use a fixed finite board such as 7x7 or 8x8, but compute cell size from portrait layout bounds.
+- Tiles, candies, selection rings, and swap animations must remain inside the board rectangle.
+- Prevent initial auto-matches unless the level intentionally starts with a tutorial clear.
+- Ensure the board always has at least one legal move after cascades settle; reshuffle or regenerate when no moves exist.
+- Lock input while swapping, clearing, dropping, refilling, or resolving cascades.
+- A swap that creates no match must animate out and back, then return control.
+- Cascades must fully resolve before moves decrement again or win/loss is checked.
+
+Required level rules:
+
+- Use finite moves, target score, collection goals, blockers, or jelly/ice clears.
+- Win when the target is reached before moves run out.
+- Lose when moves reach zero and no win condition has been met.
+- Show move count, target progress, and current objective throughout play.
+
+Special-candy rules:
+
+- Four-match creates a striped candy with clear horizontal or vertical identity.
+- Five-match or T/L-match creates a stronger special candy with distinct visual identity.
+- Activating a special candy must affect the correct row, column, area, or color set.
+- Special activation must use a staged effect: anticipation, sweep/beam/burst, tile clears, cascade, score/combo feedback.
+- Special effects must be visible and satisfying without hiding which cells are cleared.
+
 ## Win, Loss, Pause, Restart
 
 Required behavior:

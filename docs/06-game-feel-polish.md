@@ -57,6 +57,19 @@ Required polish:
 - Pause overlay dims gameplay but leaves context visible.
 - Win/loss screen shows final score and restart instruction.
 
+## Portrait Space Use
+
+Do not leave large dead areas on the portrait screen.
+
+Rules:
+
+- Top, middle, and bottom zones must each have a purpose during gameplay.
+- The lower screen should show objective progress, moves, selected item details, boosters, combo, hint, or contextual feedback.
+- Empty decorative space is acceptable only when the main playfield intentionally fills most of the screen.
+- No gameplay-critical board, HUD, text, or buttons may overflow its visual container.
+
+For match-3 games, use the bottom zone for at least two useful items, such as target progress, moves remaining, booster buttons, combo meter, selected candy explanation, or next objective.
+
 ## Difficulty Feel
 
 The first 10 seconds should teach the core action safely. Difficulty should rise after the player has seen the mechanic.
@@ -85,6 +98,8 @@ Add these where relevant:
 - Level clear celebration.
 - Distinct win and loss audio.
 - Best score celebration.
+- Premium special-item activation with anticipation, board reaction, particles, and sound.
+- Match-3 cascade rhythm: swap, match flash, pop, drop, refill, combo score, settle.
 
 ## Finish Quality Bar
 
@@ -99,3 +114,4 @@ Minimum finish bar:
 - Success feels different from normal play.
 - Game remains playable after resizing window.
 - No missing art, missing audio, or console errors.
+- No overflowing grid pieces, unused bottom section, or cheap special-item effects.

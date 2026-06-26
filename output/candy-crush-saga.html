@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Candy Crush Saga</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #162033;
+      --ink: #fff8f1;
+      --panel: rgba(28, 35, 56, 0.9);
+      --line: rgba(255, 255, 255, 0.2);
+      --pink: #ff5fa2;
+      --gold: #ffd15f;
+      --mint: #5de3bd;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #141c2e;
+      color: var(--ink);
+      font-family: ui-rounded, "Trebuchet MS", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+      user-select: none;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background:
+        radial-gradient(circle at 22% 16%, rgba(255, 95, 162, 0.3), transparent 12rem),
+        radial-gradient(circle at 84% 12%, rgba(93, 227, 189, 0.22), transparent 13rem),
+        linear-gradient(160deg, #26395c 0%, #161d31 46%, #28163f 100%);
+    }
+
+    .wrap {
+      position: relative;
+      width: min(100vw, calc(100vh * 390 / 844));
+      height: min(100vh, calc(100vw * 844 / 390));
+      max-width: 430px;
+      max-height: 930px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      background: #17223b;
+      touch-action: none;
+    }
+
+    .ui {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .top-buttons {
+      position: absolute;
+      top: max(10px, env(safe-area-inset-top));
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    button {
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 8px;
+      background: rgba(22, 29, 50, 0.82);
+      color: #fff;
+      font: 900 1rem/1 ui-rounded, system-ui, sans-serif;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(255, 209, 95, 0.85);
+      outline-offset: 2px;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      pointer-events: auto;
+      background: rgba(10, 14, 25, 0.52);
+      backdrop-filter: blur(6px);
+    }
+
+    .overlay.visible { display: flex; }
+
+    .panel {
+      width: min(330px, calc(100vw - 38px));
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 8px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(52, 42, 86, 0.96), rgba(26, 35, 60, 0.96));
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.45);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2.1rem, 10vw, 3.2rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+      color: #fff7d9;
+      text-shadow: 0 4px 0 rgba(139, 52, 121, 0.9), 0 10px 22px rgba(0, 0, 0, 0.35);
+    }
+
+    .panel p {
+      margin: 9px 0;
+      color: rgba(255, 248, 241, 0.84);
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .wide {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 12px;
+      border-color: rgba(255, 209, 95, 0.7);
+      background: linear-gradient(180deg, #ffca55, #ff8a3d);
+      color: #3b1632;
+      text-transform: uppercase;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" aria-label="Candy Crush Saga game">
+    <canvas id="game" width="390" height="844"></canvas>
+    <div class="ui">
+      <div class="top-buttons" aria-label="Game controls">
+        <button id="hintBtn" type="button" title="Hint">?</button>
+        <button id="pauseBtn" type="button" title="Pause">II</button>
+        <button id="muteBtn" type="button" title="Mute">M</button>
+      </div>
+      <section class="overlay visible" id="titleOverlay" aria-labelledby="titleText">
+        <div class="panel">
+          <h1 id="titleText">Candy Crush Saga</h1>
+          <p>Swap sweets to match 3 or more. Make striped sweets, color pops, and chain cascades.</p>
+          <p>Drag adjacent candies, click two neighbors, or use ? for a hint.</p>
+          <button class="wide" id="startBtn" type="button">Start</button>
+        </div>
+      </section>
+      <section class="overlay" id="pauseOverlay" aria-labelledby="pauseText">
+        <div class="panel">
+          <h1 id="pauseText">Paused</h1>
+          <p>Board waits. Sweet storm resumes when you do.</p>
+          <button class="wide" id="resumeBtn" type="button">Resume</button>
+          <button class="wide" id="restartPauseBtn" type="button">Restart</button>
+        </div>
+      </section>
+      <section class="overlay" id="endOverlay" aria-live="polite" aria-labelledby="endTitle">
+        <div class="panel">
+          <h1 id="endTitle">Result</h1>
+          <p id="endCopy">Score</p>
+          <button class="wide" id="restartBtn" type="button">Play Again</button>
+        </div>
+      </section>
+    </div>
+    <div class="sr-only" id="live" aria-live="polite">Ready</div>
+  </main>
+
+  <script>
+    const W = 390;
+    const H = 844;
+    const COLS = 8;
+    const ROWS = 8;
+    const BOARD_RECT = { x: 18, y: 224, w: 354, h: 354 };
+    const GAP = 4;
+    const CELL = Math.floor(Math.min(
+      (BOARD_RECT.w - (COLS - 1) * GAP) / COLS,
+      (BOARD_RECT.h - (ROWS - 1) * GAP) / ROWS
+    ));
+    const BOARD_W = COLS * CELL + (COLS - 1) * GAP;
+    const BOARD_H = ROWS * CELL + (ROWS - 1) * GAP;
+    const BOARD_X = BOARD_RECT.x + Math.floor((BOARD_RECT.w - BOARD_W) / 2);
+    const BOARD_Y = BOARD_RECT.y + Math.floor((BOARD_RECT.h - BOARD_H) / 2);
+    const MOVES = 24;
+    const TARGET = 24000;
+    const STEP = 1 / 60;
+    const TYPES = [
+      { fill: '#ff5fa2', stroke: '#a51d69', shine: '#ffd0e5', shape: 'bean' },
+      { fill: '#5de3bd', stroke: '#168f78', shine: '#cbfff1', shape: 'square' },
+      { fill: '#ffd15f', stroke: '#b86c14', shine: '#fff2bb', shape: 'drop' },
+      { fill: '#65a7ff', stroke: '#1c4fba', shine: '#d7e8ff', shape: 'round' },
+      { fill: '#b47cff', stroke: '#6732b4', shine: '#ead7ff', shape: 'diamond' },
+      { fill: '#ff855c', stroke: '#b13a22', shine: '#ffd7c8', shape: 'bar' }
+    ];
+
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const overlays = {
+      title: document.getElementById('titleOverlay'),
+      paused: document.getElementById('pauseOverlay'),
+      end: document.getElementById('endOverlay')
+    };
+    const endTitle = document.getElementById('endTitle');
+    const endCopy = document.getElementById('endCopy');
+    const live = document.getElementById('live');
+    const hintBtn = document.getElementById('hintBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    let lastTime = 0;
+    let acc = 0;
+    let audioCtx = null;
+    let muted = readSave('candyMute') === '1';
+    let bestScore = Number(readSave('candyBest') || 0);
+
+    const game = {
+      state: 'title',
+      board: [],
+      selected: null,
+      score: 0,
+      moves: MOVES,
+      combo: 0,
+      busy: 0,
+      hintPulse: 0,
+      shake: 0,
+      particles: [],
+      floaters: [],
+      effects: [],
+      flashes: [],
+      drops: [],
+      forcedCells: null,
+      hint: null,
+      hintTimer: 0,
+      idle: 0,
+      hitStop: 0,
+      swapAnim: null,
+      pointer: null,
+      lastMatchAt: 0
+    };
+
+    function readSave(key) {
+      try { return localStorage.getItem(key); } catch (err) { return null; }
+    }
+
+    function writeSave(key, value) {
+      try { localStorage.setItem(key, value); } catch (err) {}
+    }
+
+    function resizeCanvas() {
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function validateLayout() {
+      const lastX = BOARD_X + (COLS - 1) * (CELL + GAP) + CELL;
+      const lastY = BOARD_Y + (ROWS - 1) * (CELL + GAP) + CELL;
+      const ok = BOARD_X >= BOARD_RECT.x && BOARD_Y >= BOARD_RECT.y && lastX <= BOARD_RECT.x + BOARD_RECT.w && lastY <= BOARD_RECT.y + BOARD_RECT.h;
+      if (!ok) throw new Error('Board layout overflow');
+    }
+
+    function randType() {
+      return Math.floor(Math.random() * TYPES.length);
+    }
+
+    function makeCandy(type, row, col) {
+      return {
+        id: Math.random().toString(36).slice(2),
+        type,
+        row,
+        col,
+        x: BOARD_X + col * (CELL + GAP),
+        y: BOARD_Y + row * (CELL + GAP),
+        tx: BOARD_X + col * (CELL + GAP),
+        ty: BOARD_Y + row * (CELL + GAP),
+        pop: 0,
+        special: null
+      };
+    }
+
+    function resetGame() {
+      game.board = [];
+      game.score = 0;
+      game.moves = MOVES;
+      game.combo = 0;
+      game.busy = 0;
+      game.hintPulse = 0;
+      game.shake = 0;
+      game.particles.length = 0;
+      game.floaters.length = 0;
+      game.effects.length = 0;
+      game.flashes.length = 0;
+      game.drops.length = 0;
+      game.forcedCells = null;
+      game.hint = null;
+      game.hintTimer = 0;
+      game.idle = 0;
+      game.hitStop = 0;
+      game.selected = null;
+      game.swapAnim = null;
+      for (let r = 0; r < ROWS; r++) {
+        game.board[r] = [];
+        for (let c = 0; c < COLS; c++) {
+          let type = randType();
+          let guard = 0;
+          while (guard++ < 30 && wouldMakeStartMatch(r, c, type)) type = randType();
+          game.board[r][c] = makeCandy(type, r, c);
+        }
+      }
+      ensureMoveExists();
+      setState('playing');
+      announce('Game started. Target ' + TARGET + ' points.');
+    }
+
+    function wouldMakeStartMatch(r, c, type) {
+      const left = c >= 2 && game.board[r][c - 1]?.type === type && game.board[r][c - 2]?.type === type;
+      const up = r >= 2 && game.board[r - 1]?.[c]?.type === type && game.board[r - 2]?.[c]?.type === type;
+      return left || up;
+    }
+
+    function setState(state) {
+      game.state = state;
+      overlays.title.classList.toggle('visible', state === 'title');
+      overlays.paused.classList.toggle('visible', state === 'paused');
+      overlays.end.classList.toggle('visible', state === 'won' || state === 'lost');
+      pauseBtn.style.display = state === 'title' || state === 'won' || state === 'lost' ? 'none' : 'block';
+      hintBtn.style.display = state === 'title' || state === 'won' || state === 'lost' ? 'none' : 'block';
+      if (state === 'won' || state === 'lost') {
+        if (game.score > bestScore) {
+          bestScore = game.score;
+          writeSave('candyBest', String(bestScore));
+        }
+        endTitle.textContent = state === 'won' ? 'Sweet Win' : 'Out of Moves';
+        endCopy.textContent = 'Score ' + game.score.toLocaleString() + ' of ' + TARGET.toLocaleString() + '. Best ' + bestScore.toLocaleString() + '.';
+      }
+    }
+
+    function announce(text) {
+      live.textContent = text;
+    }
+
+    function startAudio() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (err) { audioCtx = null; }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function beep(freq, dur, type, gain) {
+      if (muted || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const amp = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      amp.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      amp.gain.exponentialRampToValueAtTime(gain || 0.08, audioCtx.currentTime + 0.015);
+      amp.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      osc.connect(amp).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur + 0.02);
+    }
+
+    function boardAt(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * W / rect.width;
+      const y = (clientY - rect.top) * H / rect.height;
+      const col = Math.floor((x - BOARD_X) / (CELL + GAP));
+      const row = Math.floor((y - BOARD_Y) / (CELL + GAP));
+      if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return null;
+      const lx = x - (BOARD_X + col * (CELL + GAP));
+      const ly = y - (BOARD_Y + row * (CELL + GAP));
+      if (lx < 0 || lx > CELL || ly < 0 || ly > CELL) return null;
+      return { row, col, x, y };
+    }
+
+    function adjacent(a, b) {
+      return Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
+    }
+
+    function selectCell(cell) {
+      if (game.busy > 0 || game.state !== 'playing') return;
+      const candy = game.board[cell.row]?.[cell.col];
+      if (!candy) return;
+      if (!game.selected) {
+        game.selected = { row: cell.row, col: cell.col };
+        beep(520, 0.06, 'triangle', 0.04);
+        return;
+      }
+      if (game.selected.row === cell.row && game.selected.col === cell.col) {
+        game.selected = null;
+        return;
+      }
+      if (adjacent(game.selected, cell)) {
+        trySwap(game.selected, cell);
+      } else {
+        game.selected = { row: cell.row, col: cell.col };
+        beep(560, 0.05, 'triangle', 0.04);
+      }
+    }
+
+    function trySwap(a, b) {
+      if (game.moves <= 0) return;
+      const beforeA = game.board[a.row][a.col];
+      const beforeB = game.board[b.row][b.col];
+      swapCells(a, b);
+      const matches = findMatches();
+      const specialCells = collectSpecialSwap(a, b, beforeA, beforeB);
+      if (matches.cells.size === 0 && specialCells.size === 0) {
+        swapCells(a, b);
+        game.selected = null;
+        game.shake = 0.18;
+        beep(160, 0.14, 'sawtooth', 0.04);
+        return;
+      }
+      game.moves--;
+      game.selected = null;
+      game.combo = 0;
+      game.idle = 0;
+      game.hint = null;
+      game.hintTimer = 0;
+      game.forcedCells = specialCells.size ? specialCells : null;
+      game.busy = 0.2;
+      game.swapAnim = { t: 0.16 };
+      beep(760, 0.08, 'square', 0.05);
+      setTimeout(() => resolveBoard(), 140);
+    }
+
+    function collectSpecialSwap(a, b, candyA, candyB) {
+      const cells = new Set();
+      const movedA = { row: b.row, col: b.col };
+      const movedB = { row: a.row, col: a.col };
+      if (candyA?.special === 'bomb' && candyB?.special === 'bomb') {
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) cells.add(r + ',' + c);
+        spawnRing(W / 2, BOARD_Y + BOARD_H / 2, '#ffffff', 210);
+      } else if (candyA?.special === 'bomb' && candyB) {
+        addTypeCells(cells, candyB.type);
+        spawnColorArcs(movedA, candyB.type);
+      } else if (candyB?.special === 'bomb' && candyA) {
+        addTypeCells(cells, candyA.type);
+        spawnColorArcs(movedB, candyA.type);
+      }
+      addSpecialCells(cells, movedA, candyA?.special);
+      addSpecialCells(cells, movedB, candyB?.special);
+      if (cells.size) {
+        if (candyA) candyA.special = null;
+        if (candyB) candyB.special = null;
+        spawnFloater('Sugar Blast', W / 2, BOARD_Y - 34, '#ffffff');
+      }
+      return cells;
+    }
+
+    function addTypeCells(cells, type) {
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        if (game.board[r][c]?.type === type) cells.add(r + ',' + c);
+      }
+    }
+
+    function addSpecialCells(cells, cell, special) {
+      if (!special) return;
+      if (special === 'h') {
+        for (let c = 0; c < COLS; c++) cells.add(cell.row + ',' + c);
+        spawnSweep('h', cell.row, cell.col);
+      } else if (special === 'v') {
+        for (let r = 0; r < ROWS; r++) cells.add(r + ',' + cell.col);
+        spawnSweep('v', cell.row, cell.col);
+      } else if (special === 'bomb') {
+        spawnColorArcs(cell, game.board[cell.row][cell.col]?.type);
+        addTypeCells(cells, game.board[cell.row][cell.col]?.type);
+      }
+    }
+
+    function swapCells(a, b) {
+      const ca = game.board[a.row][a.col];
+      const cb = game.board[b.row][b.col];
+      game.board[a.row][a.col] = cb;
+      game.board[b.row][b.col] = ca;
+      updateCandy(ca, b.row, b.col);
+      updateCandy(cb, a.row, a.col);
+    }
+
+    function updateCandy(candy, row, col) {
+      candy.row = row;
+      candy.col = col;
+      candy.tx = BOARD_X + col * (CELL + GAP);
+      candy.ty = BOARD_Y + row * (CELL + GAP);
+    }
+
+    function findMatches() {
+      const cells = new Set();
+      const groups = [];
+      for (let r = 0; r < ROWS; r++) {
+        let start = 0;
+        for (let c = 1; c <= COLS; c++) {
+          const same = c < COLS && game.board[r][c] && game.board[r][start] && game.board[r][c].type === game.board[r][start].type;
+          if (!same) {
+            if (c - start >= 3) addGroup(groups, cells, r, start, r, c - 1, 'h');
+            start = c;
+          }
+        }
+      }
+      for (let c = 0; c < COLS; c++) {
+        let start = 0;
+        for (let r = 1; r <= ROWS; r++) {
+          const same = r < ROWS && game.board[r][c] && game.board[start][c] && game.board[r][c].type === game.board[start][c].type;
+          if (!same) {
+            if (r - start >= 3) addGroup(groups, cells, start, c, r - 1, c, 'v');
+            start = r;
+          }
+        }
+      }
+      return { cells, groups };
+    }
+
+    function addGroup(groups, cells, r1, c1, r2, c2, dir) {
+      const group = { cells: [], dir };
+      for (let r = r1; r <= r2; r++) {
+        for (let c = c1; c <= c2; c++) {
+          const key = r + ',' + c;
+          cells.add(key);
+          group.cells.push({ row: r, col: c });
+        }
+      }
+      groups.push(group);
+    }
+
+    function resolveBoard() {
+      if (game.state !== 'playing') return;
+      const matches = findMatches();
+      if (game.forcedCells) {
+        game.forcedCells.forEach((key) => matches.cells.add(key));
+        game.forcedCells = null;
+      }
+      if (matches.cells.size === 0) {
+        game.combo = 0;
+        game.busy = 0;
+        ensureMoveExists();
+        checkEnd();
+        return;
+      }
+      game.combo++;
+      expandOldSpecials(matches);
+      const keep = specialsToCreate(matches.groups);
+      const count = matches.cells.size;
+      const points = count * 120 * game.combo;
+      game.score += points;
+      spawnFloater((game.combo > 1 ? 'x' + game.combo + ' ' : '') + '+' + points, W / 2, BOARD_Y - 22, game.combo > 1 ? '#5de3bd' : '#ffd15f');
+      matches.cells.forEach((key) => {
+        const parts = key.split(',');
+        const r = Number(parts[0]);
+        const c = Number(parts[1]);
+        const candy = game.board[r][c];
+        if (!candy) return;
+        if (keep.has(key)) {
+          candy.special = keep.get(key);
+          spawnFloater(candy.special === 'bomb' ? 'Color Pop' : 'Striped', candy.x + 21, candy.y - 8, '#ffffff');
+          spawnRing(candy.x + CELL / 2, candy.y + CELL / 2, '#fff7d9', 48);
+          return;
+        }
+        flashCell(r, c, TYPES[candy.type].fill);
+        popCandy(candy);
+        game.board[r][c] = null;
+      });
+      game.shake = Math.min(0.22, 0.08 + count * 0.006);
+      game.hitStop = count >= 8 ? 0.055 : 0.025;
+      beep(620 + game.combo * 110, 0.1, 'triangle', 0.06);
+      applyGravity();
+      game.busy = 0.32;
+      setTimeout(() => resolveBoard(), 330);
+    }
+
+    function expandOldSpecials(matches) {
+      const original = Array.from(matches.cells);
+      original.forEach((key) => {
+        const parts = key.split(',');
+        const r = Number(parts[0]);
+        const c = Number(parts[1]);
+        const candy = game.board[r]?.[c];
+        if (!candy || !candy.special) return;
+        if (candy.special === 'h') {
+          for (let cc = 0; cc < COLS; cc++) matches.cells.add(r + ',' + cc);
+          spawnSweep('h', r, c);
+        } else if (candy.special === 'v') {
+          for (let rr = 0; rr < ROWS; rr++) matches.cells.add(rr + ',' + c);
+          spawnSweep('v', r, c);
+        } else if (candy.special === 'bomb') {
+          const type = candy.type;
+          spawnColorArcs({ row: r, col: c }, type);
+          for (let rr = 0; rr < ROWS; rr++) for (let cc = 0; cc < COLS; cc++) {
+            if (game.board[rr][cc]?.type === type) matches.cells.add(rr + ',' + cc);
+          }
+        }
+        candy.special = null;
+      });
+    }
+
+    function specialsToCreate(groups) {
+      const keep = new Map();
+      groups.forEach((group) => {
+        if (group.cells.length < 4) return;
+        const seed = group.cells[Math.floor(group.cells.length / 2)];
+        const key = seed.row + ',' + seed.col;
+        keep.set(key, group.cells.length >= 5 ? 'bomb' : group.dir);
+      });
+      return keep;
+    }
+
+    function popCandy(candy) {
+      for (let i = 0; i < 9; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const speed = 55 + Math.random() * 120;
+        game.particles.push({
+          x: candy.x + CELL / 2,
+          y: candy.y + CELL / 2,
+          vx: Math.cos(a) * speed,
+          vy: Math.sin(a) * speed - 35,
+          life: 0.42 + Math.random() * 0.2,
+          max: 0.62,
+          color: TYPES[candy.type].fill,
+          size: 3 + Math.random() * 4
+        });
+      }
+      while (game.particles.length > 220) game.particles.shift();
+    }
+
+    function flashCell(row, col, color) {
+      game.flashes.push({ row, col, color, life: 0.28, max: 0.28 });
+      if (game.flashes.length > 80) game.flashes.shift();
+    }
+
+    function spawnSweep(dir, row, col) {
+      game.effects.push({ type: 'sweep', dir, row, col, life: 0.34, max: 0.34 });
+      spawnRing(BOARD_X + col * (CELL + GAP) + CELL / 2, BOARD_Y + row * (CELL + GAP) + CELL / 2, '#fff7d9', 54);
+    }
+
+    function spawnRing(x, y, color, radius) {
+      game.effects.push({ type: 'ring', x, y, color, radius, life: 0.42, max: 0.42 });
+    }
+
+    function spawnColorArcs(cell, type) {
+      const originX = BOARD_X + cell.col * (CELL + GAP) + CELL / 2;
+      const originY = BOARD_Y + cell.row * (CELL + GAP) + CELL / 2;
+      spawnRing(originX, originY, '#ffffff', 120);
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        if (game.board[r][c]?.type !== type) continue;
+        const targetX = BOARD_X + c * (CELL + GAP) + CELL / 2;
+        const targetY = BOARD_Y + r * (CELL + GAP) + CELL / 2;
+        game.effects.push({ type: 'arc', x1: originX, y1: originY, x2: targetX, y2: targetY, color: TYPES[type].fill, life: 0.42, max: 0.42 });
+      }
+    }
+
+    function spawnFloater(text, x, y, color) {
+      game.floaters.push({ text, x, y, color, life: 0.9, max: 0.9 });
+      while (game.floaters.length > 16) game.floaters.shift();
+    }
+
+    function applyGravity() {
+      for (let c = 0; c < COLS; c++) {
+        let write = ROWS - 1;
+        for (let r = ROWS - 1; r >= 0; r--) {
+          const candy = game.board[r][c];
+          if (candy) {
+            game.board[write][c] = candy;
+            updateCandy(candy, write, c);
+            write--;
+          }
+        }
+        for (let r = write; r >= 0; r--) {
+          const candy = makeCandy(randType(), r, c);
+          candy.y = BOARD_Y - (write - r + 1) * (CELL + GAP) - Math.random() * 100;
+          game.board[r][c] = candy;
+        }
+      }
+    }
+
+    function ensureMoveExists() {
+      if (hasPossibleMove()) return;
+      let candies = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) candies.push(game.board[r][c]);
+      for (let i = candies.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candies[i], candies[j]] = [candies[j], candies[i]];
+      }
+      let k = 0;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        game.board[r][c] = candies[k++];
+        updateCandy(game.board[r][c], r, c);
+      }
+      if (!hasPossibleMove()) {
+        game.board[0][0].type = 0;
+        game.board[0][1].type = 0;
+        game.board[1][0].type = 0;
+        game.board[0][2].type = 1;
+      }
+      spawnFloater('Shuffle', W / 2, BOARD_Y - 22, '#5de3bd');
+    }
+
+    function hasPossibleMove() {
+      return Boolean(findPossibleMove());
+    }
+
+    function findPossibleMove() {
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const a = { row: r, col: c };
+        const dirs = [[1, 0], [0, 1]];
+        for (const d of dirs) {
+          const nr = r + d[0];
+          const nc = c + d[1];
+          if (nr >= ROWS || nc >= COLS) continue;
+          const b = { row: nr, col: nc };
+          swapCells(a, b);
+          const ok = findMatches().cells.size > 0;
+          swapCells(a, b);
+          if (ok) return { a, b };
+        }
+      }
+      return null;
+    }
+
+    function revealHint(manual) {
+      if (game.state !== 'playing' || game.busy > 0) return;
+      const hint = findPossibleMove();
+      if (!hint) {
+        ensureMoveExists();
+        return;
+      }
+      game.hint = hint;
+      game.hintTimer = manual ? 3.2 : 2.4;
+      game.idle = 0;
+      announce(manual ? 'Hint shown. Swap highlighted candies.' : 'Automatic hint shown.');
+      spawnFloater(manual ? 'Try this swap' : 'Hint', W / 2, BOARD_Y - 20, '#fff7d9');
+      beep(480, 0.06, 'triangle', 0.035);
+      setTimeout(() => beep(620, 0.07, 'triangle', 0.035), 70);
+    }
+
+    function checkEnd() {
+      if (game.score >= TARGET) {
+        setState('won');
+        beep(900, 0.12, 'triangle', 0.06);
+        setTimeout(() => beep(1180, 0.18, 'triangle', 0.06), 130);
+        announce('You won with ' + game.score + ' points.');
+      } else if (game.moves <= 0) {
+        setState('lost');
+        beep(220, 0.18, 'sawtooth', 0.04);
+        announce('Out of moves. Score ' + game.score + '.');
+      }
+    }
+
+    function update(dt) {
+      game.hintPulse += dt;
+      if (game.hitStop > 0) {
+        game.hitStop = Math.max(0, game.hitStop - dt);
+        updateParticles(dt);
+        updateEffects(dt);
+        return;
+      }
+      if (game.state === 'playing' && game.busy <= 0) {
+        game.idle += dt;
+        if (game.hintTimer > 0) game.hintTimer = Math.max(0, game.hintTimer - dt);
+        if (game.hintTimer <= 0) game.hint = null;
+        if (game.idle > 8 && !game.hint) revealHint(false);
+      }
+      if (game.busy > 0) game.busy = Math.max(0, game.busy - dt);
+      if (game.shake > 0) game.shake = Math.max(0, game.shake - dt);
+      if (game.swapAnim) {
+        game.swapAnim.t -= dt;
+        if (game.swapAnim.t <= 0) game.swapAnim = null;
+      }
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const candy = game.board[r][c];
+        if (!candy) continue;
+        candy.x += (candy.tx - candy.x) * Math.min(1, dt * 14);
+        candy.y += (candy.ty - candy.y) * Math.min(1, dt * 14);
+        candy.pop = Math.max(0, candy.pop - dt * 3);
+      }
+      updateParticles(dt);
+      updateEffects(dt);
+    }
+
+    function updateParticles(dt) {
+      for (let i = game.particles.length - 1; i >= 0; i--) {
+        const p = game.particles[i];
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 260 * dt;
+        if (p.life <= 0) game.particles.splice(i, 1);
+      }
+      for (let i = game.floaters.length - 1; i >= 0; i--) {
+        const f = game.floaters[i];
+        f.life -= dt;
+        f.y -= 34 * dt;
+        if (f.life <= 0) game.floaters.splice(i, 1);
+      }
+    }
+
+    function updateEffects(dt) {
+      for (let i = game.effects.length - 1; i >= 0; i--) {
+        const fx = game.effects[i];
+        fx.life -= dt;
+        if (fx.life <= 0) game.effects.splice(i, 1);
+      }
+      for (let i = game.flashes.length - 1; i >= 0; i--) {
+        const flash = game.flashes[i];
+        flash.life -= dt;
+        if (flash.life <= 0) game.flashes.splice(i, 1);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawBackground();
+      const sx = game.shake > 0 ? (Math.random() - 0.5) * game.shake * 34 : 0;
+      const sy = game.shake > 0 ? (Math.random() - 0.5) * game.shake * 34 : 0;
+      ctx.save();
+      ctx.translate(sx, sy);
+      drawHud();
+      drawBoard();
+      drawBottomPanel();
+      ctx.restore();
+      drawParticles();
+      if (game.state === 'title') drawTitleDecor();
+    }
+
+    function drawBackground() {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#324c78');
+      g.addColorStop(0.48, '#223150');
+      g.addColorStop(1, '#331b4a');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < 44; i++) {
+        const x = (i * 83 + 31) % W;
+        const y = (i * 137 + 19) % H;
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = i % 2 ? '#ffffff' : '#ffd15f';
+        roundRect(x, y, 18 + (i % 5) * 5, 7, 5, true);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawHud() {
+      ctx.save();
+      ctx.fillStyle = 'rgba(10, 14, 25, 0.34)';
+      roundRect(18, 18, 354, 154, 8, true);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 2;
+      roundRect(18, 18, 354, 154, 8, false);
+      ctx.fillStyle = '#fff7d9';
+      ctx.font = '900 34px ui-rounded, system-ui, sans-serif';
+      ctx.fillText('Candy Crush', 28, 55);
+      ctx.font = '900 21px ui-rounded, system-ui, sans-serif';
+      ctx.fillStyle = '#ffd15f';
+      ctx.fillText('Saga', 30, 82);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255, 248, 241, 0.78)';
+      ctx.font = '800 12px ui-rounded, system-ui, sans-serif';
+      ctx.fillText('BEST ' + bestScore.toLocaleString(), 262, 50);
+      ctx.textAlign = 'start';
+      statBox(28, 101, 96, 'Score', game.score.toLocaleString());
+      statBox(140, 101, 90, 'Moves', game.moves);
+      statBox(246, 101, 96, 'Target', Math.max(0, TARGET - game.score).toLocaleString());
+      const pct = Math.max(0, Math.min(1, game.score / TARGET));
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+      roundRect(28, 180, 334, 18, 8, true);
+      const pg = ctx.createLinearGradient(28, 0, 362, 0);
+      pg.addColorStop(0, '#ff5fa2');
+      pg.addColorStop(0.55, '#ffd15f');
+      pg.addColorStop(1, '#5de3bd');
+      ctx.fillStyle = pg;
+      roundRect(28, 180, 334 * pct, 18, 8, true);
+      if (game.combo > 1) {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'rgba(39, 18, 46, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.font = '900 18px ui-rounded, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.strokeText('Combo x' + game.combo, W / 2, 218);
+        ctx.fillText('Combo x' + game.combo, W / 2, 218);
+        ctx.textAlign = 'start';
+      }
+      ctx.restore();
+    }
+
+    function drawBottomPanel() {
+      if (game.state === 'title') return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(10, 14, 25, 0.34)';
+      roundRect(18, 602, 354, 104, 8, true);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 2;
+      roundRect(18, 602, 354, 104, 8, false);
+      ctx.fillStyle = '#fff7d9';
+      ctx.font = '900 18px ui-rounded, system-ui, sans-serif';
+      ctx.fillText(game.hint ? 'Hint ready: swap highlighted sweets' : 'Objective: reach ' + TARGET.toLocaleString(), 32, 634);
+      ctx.fillStyle = 'rgba(255, 248, 241, 0.72)';
+      ctx.font = '800 13px ui-rounded, system-ui, sans-serif';
+      const specialText = game.combo > 1 ? 'Cascade combo x' + game.combo : 'Make 4 for stripes, 5 for color pop';
+      ctx.fillText(specialText, 32, 660);
+      const movesPct = game.moves / MOVES;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      roundRect(32, 676, 326, 14, 8, true);
+      ctx.fillStyle = movesPct > 0.33 ? '#5de3bd' : '#ff855c';
+      roundRect(32, 676, 326 * movesPct, 14, 8, true);
+      ctx.restore();
+    }
+
+    function statBox(x, y, w, label, value) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      roundRect(x, y, w, 52, 8, true);
+      ctx.fillStyle = 'rgba(255, 248, 241, 0.72)';
+      ctx.font = '800 11px ui-rounded, system-ui, sans-serif';
+      ctx.fillText(label.toUpperCase(), x + 10, y + 17);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 18px ui-rounded, system-ui, sans-serif';
+      ctx.fillText(String(value), x + 10, y + 40);
+    }
+
+    function drawBoard() {
+      ctx.save();
+      ctx.fillStyle = 'rgba(11, 16, 31, 0.46)';
+      roundRect(BOARD_RECT.x, BOARD_RECT.y, BOARD_RECT.w, BOARD_RECT.h, 8, true);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 2;
+      roundRect(BOARD_RECT.x, BOARD_RECT.y, BOARD_RECT.w, BOARD_RECT.h, 8, false);
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const x = BOARD_X + c * (CELL + GAP);
+        const y = BOARD_Y + r * (CELL + GAP);
+        ctx.fillStyle = (r + c) % 2 ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255, 255, 255, 0.15)';
+        roundRect(x - 1, y - 1, CELL + 2, CELL + 2, 8, true);
+      }
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const candy = game.board[r][c];
+        if (candy) drawCandy(candy);
+      }
+      drawCellFlashes();
+      drawEffects();
+      if (game.hint && game.hintTimer > 0) drawHint(game.hint);
+      if (game.selected) drawSelection(game.selected);
+      ctx.restore();
+    }
+
+    function drawCellFlashes() {
+      ctx.save();
+      for (const flash of game.flashes) {
+        const x = BOARD_X + flash.col * (CELL + GAP) - 2;
+        const y = BOARD_Y + flash.row * (CELL + GAP) - 2;
+        ctx.globalAlpha = Math.max(0, flash.life / flash.max) * 0.55;
+        ctx.fillStyle = flash.color;
+        roundRect(x, y, CELL + 4, CELL + 4, 8, true);
+      }
+      ctx.restore();
+    }
+
+    function drawEffects() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(BOARD_RECT.x, BOARD_RECT.y, BOARD_RECT.w, BOARD_RECT.h);
+      ctx.clip();
+      for (const fx of game.effects) {
+        const t = 1 - fx.life / fx.max;
+        if (fx.type === 'sweep') drawSweepEffect(fx, t);
+        else if (fx.type === 'ring') drawRingEffect(fx, t);
+        else if (fx.type === 'arc') drawArcEffect(fx, t);
+      }
+      ctx.restore();
+    }
+
+    function drawSweepEffect(fx, t) {
+      const alpha = Math.max(0, 1 - t);
+      const center = fx.dir === 'h'
+        ? BOARD_Y + fx.row * (CELL + GAP) + CELL / 2
+        : BOARD_X + fx.col * (CELL + GAP) + CELL / 2;
+      const grad = fx.dir === 'h'
+        ? ctx.createLinearGradient(BOARD_X, 0, BOARD_X + BOARD_W, 0)
+        : ctx.createLinearGradient(0, BOARD_Y, 0, BOARD_Y + BOARD_H);
+      grad.addColorStop(0, 'rgba(255, 247, 217, 0)');
+      grad.addColorStop(0.5, 'rgba(255, 247, 217, ' + (0.72 * alpha) + ')');
+      grad.addColorStop(1, 'rgba(255, 247, 217, 0)');
+      ctx.fillStyle = grad;
+      if (fx.dir === 'h') roundRect(BOARD_X, center - 11, BOARD_W, 22, 8, true);
+      else roundRect(center - 11, BOARD_Y, 22, BOARD_H, 8, true);
+    }
+
+    function drawRingEffect(fx, t) {
+      ctx.globalAlpha = Math.max(0, 1 - t);
+      ctx.strokeStyle = fx.color;
+      ctx.lineWidth = 3 + 7 * (1 - t);
+      circle(fx.x, fx.y, Math.max(8, fx.radius * t), false);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawArcEffect(fx, t) {
+      ctx.globalAlpha = Math.max(0, 1 - t);
+      ctx.strokeStyle = fx.color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const mx = (fx.x1 + fx.x2) / 2 + Math.sin(t * Math.PI) * 18;
+      const my = (fx.y1 + fx.y2) / 2 - Math.sin(t * Math.PI) * 18;
+      ctx.moveTo(fx.x1, fx.y1);
+      ctx.quadraticCurveTo(mx, my, fx.x2, fx.y2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawHint(hint) {
+      const cells = [hint.a, hint.b];
+      const alpha = 0.45 + Math.sin(game.hintPulse * 9) * 0.25;
+      ctx.save();
+      ctx.strokeStyle = '#fff7d9';
+      ctx.fillStyle = 'rgba(255, 209, 95, 0.16)';
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = alpha;
+      cells.forEach((cell) => {
+        const x = BOARD_X + cell.col * (CELL + GAP) - 5;
+        const y = BOARD_Y + cell.row * (CELL + GAP) - 5;
+        roundRect(x, y, CELL + 10, CELL + 10, 8, true);
+        roundRect(x, y, CELL + 10, CELL + 10, 8, false);
+      });
+      const ax = BOARD_X + hint.a.col * (CELL + GAP) + CELL / 2;
+      const ay = BOARD_Y + hint.a.row * (CELL + GAP) + CELL / 2;
+      const bx = BOARD_X + hint.b.col * (CELL + GAP) + CELL / 2;
+      const by = BOARD_Y + hint.b.row * (CELL + GAP) + CELL / 2;
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawCandy(candy) {
+      const t = TYPES[candy.type];
+      const pulse = game.selected && game.selected.row === candy.row && game.selected.col === candy.col ? Math.sin(game.hintPulse * 12) * 2 + 2 : 0;
+      const x = candy.x + pulse * -0.5;
+      const y = candy.y + pulse * -0.5;
+      const size = CELL + pulse;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 4;
+      ctx.fillStyle = t.fill;
+      ctx.strokeStyle = t.stroke;
+      ctx.lineWidth = 3;
+      if (t.shape === 'round') {
+        circle(x + size / 2, y + size / 2, size * 0.44, true);
+        circle(x + size / 2, y + size / 2, size * 0.44, false);
+      } else if (t.shape === 'diamond') {
+        ctx.beginPath();
+        ctx.moveTo(x + size / 2, y + 2);
+        ctx.lineTo(x + size - 2, y + size / 2);
+        ctx.lineTo(x + size / 2, y + size - 2);
+        ctx.lineTo(x + 2, y + size / 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (t.shape === 'drop') {
+        ctx.beginPath();
+        ctx.moveTo(x + size / 2, y + 2);
+        ctx.bezierCurveTo(x + size - 2, y + 15, x + size - 3, y + size - 4, x + size / 2, y + size - 3);
+        ctx.bezierCurveTo(x + 3, y + size - 4, x + 2, y + 15, x + size / 2, y + 2);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        roundRect(x + 3, y + 5, size - 6, size - 10, t.shape === 'square' ? 8 : 18, true);
+        roundRect(x + 3, y + 5, size - 6, size - 10, t.shape === 'square' ? 8 : 18, false);
+      }
+      ctx.shadowColor = 'transparent';
+      ctx.fillStyle = t.shine;
+      ctx.globalAlpha = 0.78;
+      circle(x + size * 0.35, y + size * 0.28, 5, true);
+      ctx.globalAlpha = 1;
+      if (candy.special) drawSpecialMark(candy, t);
+      ctx.restore();
+    }
+
+    function drawSpecialMark(candy, t) {
+      ctx.save();
+      const shimmer = 0.65 + Math.sin(game.hintPulse * 8 + candy.row + candy.col) * 0.2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = shimmer;
+      if (candy.special === 'h') {
+        for (let i = -1; i <= 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(candy.x + 7, candy.y + 16 + i * 7);
+          ctx.lineTo(candy.x + 35, candy.y + 16 + i * 7);
+          ctx.stroke();
+        }
+      } else if (candy.special === 'v') {
+        for (let i = -1; i <= 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(candy.x + 16 + i * 7, candy.y + 7);
+          ctx.lineTo(candy.x + 16 + i * 7, candy.y + 35);
+          ctx.stroke();
+        }
+      } else {
+        ctx.shadowColor = '#fff7d9';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#ffffff';
+        circle(candy.x + CELL / 2, candy.y + CELL / 2, CELL * 0.2, true);
+        ctx.shadowBlur = 0;
+        ['#ff5fa2', '#ffd15f', '#5de3bd', '#65a7ff'].forEach((color, i) => {
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.arc(candy.x + CELL / 2, candy.y + CELL / 2, CELL * (0.28 + i * 0.035), game.hintPulse * 2 + i, game.hintPulse * 2 + i + 1.4);
+          ctx.stroke();
+        });
+      }
+      ctx.restore();
+    }
+
+    function drawSelection(cell) {
+      const x = BOARD_X + cell.col * (CELL + GAP) - 4;
+      const y = BOARD_Y + cell.row * (CELL + GAP) - 4;
+      ctx.strokeStyle = '#fff7d9';
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = 0.75 + Math.sin(game.hintPulse * 10) * 0.2;
+      roundRect(x, y, CELL + 8, CELL + 8, 8, false);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawParticles() {
+      ctx.save();
+      for (const p of game.particles) {
+        ctx.globalAlpha = Math.max(0, p.life / p.max);
+        ctx.fillStyle = p.color;
+        circle(p.x, p.y, p.size, true);
+      }
+      for (const f of game.floaters) {
+        ctx.globalAlpha = Math.max(0, f.life / f.max);
+        ctx.fillStyle = f.color;
+        ctx.strokeStyle = 'rgba(39, 18, 46, 0.85)';
+        ctx.lineWidth = 4;
+        ctx.font = '900 22px ui-rounded, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.strokeText(f.text, f.x, f.y);
+        ctx.fillText(f.text, f.x, f.y);
+      }
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'start';
+      ctx.restore();
+    }
+
+    function drawTitleDecor() {
+      ctx.save();
+      ctx.globalAlpha = 0.72;
+      ctx.font = '900 16px ui-rounded, system-ui, sans-serif';
+      ctx.fillStyle = '#fff7d9';
+      ctx.textAlign = 'center';
+      ctx.fillText('Match 3 sweets. Chain cascades. Reach 24,000.', W / 2, 706);
+      ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r, fill) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+      if (fill) ctx.fill(); else ctx.stroke();
+    }
+
+    function circle(x, y, r, fill) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      if (fill) ctx.fill(); else ctx.stroke();
+    }
+
+    function frame(nowMs) {
+      const now = nowMs / 1000;
+      const dt = Math.min(0.05, now - lastTime || 0);
+      lastTime = now;
+      acc += dt;
+      while (acc >= STEP) {
+        if (game.state === 'playing' || game.state === 'title') update(STEP);
+        else {
+          updateParticles(STEP);
+          updateEffects(STEP);
+        }
+        acc -= STEP;
+      }
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+      startAudio();
+      if (game.state !== 'playing') return;
+      const cell = boardAt(event.clientX, event.clientY);
+      if (!cell) return;
+      game.pointer = { id: event.pointerId, start: cell };
+      canvas.setPointerCapture(event.pointerId);
+      selectCell(cell);
+    });
+
+    canvas.addEventListener('pointermove', (event) => {
+      if (game.state !== 'playing' || !game.pointer || game.pointer.id !== event.pointerId || game.busy > 0) return;
+      const cell = boardAt(event.clientX, event.clientY);
+      if (!cell || !adjacent(game.pointer.start, cell)) return;
+      trySwap(game.pointer.start, cell);
+      game.pointer = null;
+    });
+
+    canvas.addEventListener('pointerup', () => { game.pointer = null; });
+    canvas.addEventListener('pointercancel', () => { game.pointer = null; });
+
+    document.getElementById('startBtn').addEventListener('click', () => { startAudio(); resetGame(); });
+    document.getElementById('resumeBtn').addEventListener('click', () => { startAudio(); setState('playing'); });
+    document.getElementById('restartBtn').addEventListener('click', () => { startAudio(); resetGame(); });
+    document.getElementById('restartPauseBtn').addEventListener('click', () => { startAudio(); resetGame(); });
+    hintBtn.addEventListener('click', () => { startAudio(); revealHint(true); });
+    pauseBtn.addEventListener('click', () => {
+      startAudio();
+      if (game.state === 'playing') setState('paused');
+      else if (game.state === 'paused') setState('playing');
+    });
+    muteBtn.addEventListener('click', () => {
+      muted = !muted;
+      muteBtn.textContent = muted ? 'X' : 'M';
+      writeSave('candyMute', muted ? '1' : '0');
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'p' || event.key === 'P' || event.key === 'Escape') {
+        if (game.state === 'playing') setState('paused'); else if (game.state === 'paused') setState('playing');
+      }
+      if (event.key === 'r' || event.key === 'R') resetGame();
+      if (event.key === 'm' || event.key === 'M') muteBtn.click();
+      if (event.key === 'h' || event.key === 'H' || event.key === '?') revealHint(true);
+    });
+    window.addEventListener('resize', resizeCanvas);
+
+    muteBtn.textContent = muted ? 'X' : 'M';
+    validateLayout();
+    resizeCanvas();
+    resetGame();
+    setState('title');
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

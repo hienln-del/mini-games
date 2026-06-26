@@ -112,3 +112,29 @@ Examples:
 - Pickup: object disappears, particle burst, score floats, sound plays.
 - Damage: player flashes, health changes, shake happens, sound plays.
 - Level clear: confetti burst, objective text changes, fanfare plays.
+
+## Premium Special Effects
+
+Special items should feel valuable, not like plain debug marks.
+
+Use layered effects:
+
+- Anticipation: brief pulse, glow, scale-up, or charge ring before activation.
+- Action: directional beam, row/column sweep, radial burst, lightning arc, color wave, or shock ring.
+- Board reaction: affected cells flash, shake, lift, pop, or dissolve in sequence.
+- Reward: score ticks, combo text, particles, and sound rise with effect size.
+- Afterglow: short sparkle trail or fading residue that does not block gameplay.
+
+Match-3 special candy expectations:
+
+- Striped candy: visible stripes wrapped around the candy, plus a full row or column sweep when triggered.
+- Wrapped/bomb candy: swelling pulse, radial blast, screen bump, and ring particles.
+- Color bomb: prismatic glow, color-linked arcs to matching candies, then staggered pops.
+- Special combinations: larger combined effect with clear order and capped duration.
+
+Avoid cheap effects:
+
+- A single white line drawn on top of the candy.
+- Static icons with no activation animation.
+- Particles that appear unrelated to the cleared cells.
+- Effects that hide the board for too long or make cleared cells unclear.

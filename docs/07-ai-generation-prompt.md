@@ -53,6 +53,9 @@ PORTRAIT MOBILE RULES
 - Touch input must be primary. Keyboard controls may exist only as desktop fallback.
 - All HUD text, menu text, and buttons must fit at `360px` viewport width.
 - Visible buttons must be touch-safe, at least `44px` in both dimensions.
+- Use the full portrait screen intentionally: top HUD, middle playfield, and bottom objective/control/feedback area.
+- Do not leave the lower screen empty during gameplay unless the main playfield intentionally fills that space.
+- No board pieces, selection rings, glows, shadows, or animated tiles may overflow the grid or visual container.
 
 REQUIRED GAME STRUCTURE
 - Include title/menu, gameplay, pause, win screen, loss screen, restart, mute, and visible controls.
@@ -98,12 +101,25 @@ GAME FEEL
 - Add polish such as HUD pulse, pickup burst, hit flash, level clear celebration, and best score feedback.
 - The player should understand the objective and controls within 5 seconds.
 
+MATCH-3 / CANDY PUZZLE CONTRACT
+- If the request is `make candy crush`, `make match-3`, or similar, compute board layout from available portrait space.
+- Define `boardX`, `boardY`, `boardW`, `boardH`, `cellSize`, and `gap`; prove the last row and last column fit inside the board.
+- Prefer 7x7 for portrait mobile unless 8x8 can fit cleanly with readable candies and no overflow.
+- Keep candies, selection rings, swap animations, shadows, glows, and particles inside board bounds except for brief intentional bursts.
+- Use the bottom zone for useful gameplay information: moves, target progress, selected candy info, boosters, combo, hint, or objective text.
+- Do not leave a large empty section below the board.
+- Ensure the board always has at least one legal move after cascades; reshuffle if needed.
+- Lock input while swap, clear, drop, refill, and cascade animations resolve.
+- Special candies must have premium effects: anticipation pulse, clear directional or radial activation, affected-cell feedback, particles, sound, score/combo response, and short afterglow.
+- A single white line/icon on a candy is not enough for a special candy.
+
 QUALITY BAR
 - The final HTML must be complete, playable, and polished.
 - It must have no missing assets, no placeholder TODOs, no console spam, and no known runtime errors.
 - It must work after mobile viewport resize or orientation UI changes.
 - It must be readable and playable on portrait mobile viewports `390x844` and `360x740`.
 - It must not contain dead gameplay states, empty scrolling, exhausted spawns, or unreachable win conditions.
+- It must not contain overflowing grid layouts, unused lower-screen dead space, or cheap special-item effects.
 - It must include comments only where they clarify non-obvious logic.
 
 FLAPPY-STYLE CONTRACT
@@ -124,3 +140,11 @@ make flappy bird game
 ```
 
 Expected AI behavior: infer complete portrait-mobile mechanics, use tap-first controls, spawn enough gates for the target score, make win/loss/restart reachable, prevent empty continuation after obstacles end, save it to `output/flappy-bird.html`, and add it to `output/index.html`.
+
+## Optional Match-3 Sample Brief Snippet
+
+```text
+make candy crush saga game
+```
+
+Expected AI behavior: infer a portrait-mobile match-3 game, compute a board that fits inside its grid, use the bottom screen for useful progress/booster/objective UI, create premium special-candy effects, prevent no-move boards, make win/loss/restart reachable, save it to `output/candy-crush-saga.html`, and add it to `output/index.html`.

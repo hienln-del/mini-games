@@ -56,6 +56,31 @@ Required mobile rules:
 - Keep HUD and overlay text readable at `360px` viewport width.
 - Do not place critical controls where mobile browser bars or notches can cover them.
 
+## Grid And Board Fit
+
+Grid games must derive board geometry from explicit bounds instead of eyeballed constants.
+
+Required rules:
+
+- Define a board rectangle with `boardX`, `boardY`, `boardW`, and `boardH`.
+- Compute `cellSize` from the smaller of available width and height after gaps and padding.
+- Compute board width as `cols * cellSize + (cols - 1) * gap` and board height as `rows * cellSize + (rows - 1) * gap`.
+- Center the board within its rectangle and keep every tile inside board bounds.
+- Clamp animated pieces, selection rings, glows, shadows, and particles so they do not visually spill into HUD or lower panels unless the effect is intentional and short-lived.
+- Include a `validateLayout()` helper or equivalent assertions that check the last row and last column fit inside the board rectangle.
+
+For match-3 games on `390x844`, prefer 7x7 or a carefully sized 8x8 board. An 8x8 board must reduce cell size and gaps enough to fit, rather than overflowing the frame.
+
+## Portrait Screen Composition
+
+Use the whole portrait screen with clear zones:
+
+- Top zone: compact score, moves, target, pause/mute.
+- Middle zone: main board or action playfield.
+- Bottom zone: objective details, selected item info, boosters, combo meter, hint, or next-step prompt.
+
+The lower 20% to 30% of the screen should not be empty during gameplay. If no active controls are needed, use that space for progress, objectives, level flavor, combo feedback, or helpful status.
+
 ## Main Loop
 
 Use `requestAnimationFrame`. Prefer a fixed-step update for deterministic gameplay.
@@ -139,4 +164,4 @@ Before marking a generated game complete, verify these viewport sizes conceptual
 - `360x740` portrait mobile.
 - Optional desktop fallback, only to confirm keyboard support does not break mobile layout.
 
-Reject the game if text overlaps, buttons clip, canvas uses a landscape-first layout, touch controls are missing, or gameplay cannot be completed on portrait mobile.
+Reject the game if text overlaps, buttons clip, canvas uses a landscape-first layout, touch controls are missing, a grid overflows its bounds, the lower screen is unused, or gameplay cannot be completed on portrait mobile.
