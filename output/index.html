@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MiniGames Library</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10131a;
+      --panel: #181d26;
+      --panel-2: #202735;
+      --ink: #f5f7fb;
+      --muted: #aeb8ca;
+      --line: #334056;
+      --accent: #54d6b6;
+      --accent-2: #ffc857;
+      --danger: #ff6b7a;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(84, 214, 182, 0.16), transparent 28rem),
+        radial-gradient(circle at 82% 18%, rgba(255, 200, 87, 0.14), transparent 24rem),
+        linear-gradient(135deg, #10131a, #151926 48%, #11151d);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    button, input, select, a {
+      font: inherit;
+    }
+
+    button, select, input {
+      color: var(--ink);
+    }
+
+    .shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .count {
+      justify-self: end;
+      border: 1px solid var(--line);
+      background: rgba(24, 29, 38, 0.76);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .count strong {
+      color: var(--ink);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 160px 160px 180px;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .field, .select {
+      min-height: 44px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(24, 29, 38, 0.92);
+      color: var(--ink);
+      outline: none;
+    }
+
+    .field {
+      padding: 0 14px;
+    }
+
+    .select {
+      padding: 0 10px;
+    }
+
+    .field:focus, .select:focus, .button:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(84, 214, 182, 0.18);
+    }
+
+    .library {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(24, 29, 38, 0.9);
+      box-shadow: 0 18px 50px var(--shadow);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      border: 1px solid rgba(84, 214, 182, 0.38);
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: #bff7e9;
+      background: rgba(84, 214, 182, 0.1);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .description {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .meta {
+      display: grid;
+      gap: 6px;
+      margin-top: auto;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.78rem;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: var(--panel-2);
+      color: var(--ink);
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .button.primary {
+      border-color: rgba(84, 214, 182, 0.55);
+      background: #1d594f;
+    }
+
+    .button.warn {
+      border-color: rgba(255, 200, 87, 0.4);
+      background: rgba(255, 200, 87, 0.12);
+    }
+
+    .empty {
+      display: none;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(24, 29, 38, 0.6);
+    }
+
+    .empty.visible {
+      display: block;
+    }
+
+    .player {
+      display: none;
+      min-height: calc(100vh - 56px);
+      padding: 14px;
+    }
+
+    .player.active {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .player-bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(16, 19, 26, 0.96);
+    }
+
+    .player-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 900;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 70vh;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #000;
+    }
+
+    body.playing .shell {
+      display: none;
+    }
+
+    body.playing {
+      overflow: hidden;
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 18px;
+      }
+
+      .topbar, .toolbar, .player-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .count {
+        justify-self: stretch;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .player {
+        min-height: 100vh;
+        padding: 8px;
+      }
+
+      iframe {
+        min-height: calc(100vh - 128px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="libraryView">
+    <section class="topbar" aria-labelledby="pageTitle">
+      <div>
+        <h1 id="pageTitle">MiniGames Library</h1>
+        <p class="subtitle">All generated single-file games live here. Play inside the hub or open each game directly as its own standalone HTML file.</p>
+      </div>
+      <div class="count" id="gameCount" aria-live="polite">0 games</div>
+    </section>
+
+    <section class="toolbar" aria-label="Library filters">
+      <input class="field" id="searchInput" type="search" placeholder="Search games, controls, tags..." autocomplete="off">
+      <select class="select" id="genreFilter" aria-label="Filter by genre"></select>
+      <select class="select" id="statusFilter" aria-label="Filter by status"></select>
+      <select class="select" id="sortSelect" aria-label="Sort games">
+        <option value="featured">Featured first</option>
+        <option value="latest">Latest first</option>
+        <option value="title">Title A-Z</option>
+      </select>
+    </section>
+
+    <section class="library" id="gameGrid" aria-label="Games"></section>
+    <section class="empty" id="emptyState">No games match these filters.</section>
+  </main>
+
+  <section class="player" id="playerView" aria-label="Game player">
+    <div class="player-bar">
+      <button class="button warn" id="backButton" type="button">Back to library</button>
+      <div class="player-title" id="playerTitle">No game selected</div>
+      <a class="button" id="directLink" href="#">Open direct</a>
+    </div>
+    <iframe id="gameFrame" title="Selected game" src="about:blank"></iframe>
+  </section>
+
+  <script>
+    const GAMES = [
+      {
+        slug: 'flappy-bird',
+        title: 'Flappy Bird',
+        file: 'flappy-bird.html',
+        genre: 'Arcade',
+        description: 'Guide a tiny bird through moving pipes, chase a high score, and survive long enough to win the route.',
+        controls: 'Space, Arrow Up, W, click, or tap to flap. P/Esc pauses. R restarts. M mutes.',
+        status: 'Playable',
+        tags: ['one-button', 'score attack', 'reflex', 'featured'],
+        createdAt: '2026-06-26'
+      }
+    ];
+
+    const state = {
+      query: '',
+      genre: 'all',
+      status: 'all',
+      sort: 'featured'
+    };
+
+    const els = {
+      search: document.getElementById('searchInput'),
+      genre: document.getElementById('genreFilter'),
+      status: document.getElementById('statusFilter'),
+      sort: document.getElementById('sortSelect'),
+      grid: document.getElementById('gameGrid'),
+      empty: document.getElementById('emptyState'),
+      count: document.getElementById('gameCount'),
+      player: document.getElementById('playerView'),
+      frame: document.getElementById('gameFrame'),
+      playerTitle: document.getElementById('playerTitle'),
+      directLink: document.getElementById('directLink'),
+      back: document.getElementById('backButton')
+    };
+
+    function setupGenres() {
+      const genres = Array.from(new Set(GAMES.map((game) => game.genre))).sort((a, b) => a.localeCompare(b));
+      els.genre.innerHTML = '<option value="all">All genres</option>' + genres.map((genre) => `<option value="${escapeHtml(genre)}">${escapeHtml(genre)}</option>`).join('');
+    }
+
+    function setupStatuses() {
+      const statuses = Array.from(new Set(GAMES.map((game) => game.status))).sort((a, b) => a.localeCompare(b));
+      els.status.innerHTML = '<option value="all">All statuses</option>' + statuses.map((status) => `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[char]));
+    }
+
+    function matchesQuery(game, query) {
+      if (!query) return true;
+      const haystack = [
+        game.title,
+        game.genre,
+        game.description,
+        game.controls,
+        game.status,
+        ...(game.tags || [])
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
+    }
+
+    function sortedGames(games) {
+      const copy = [...games];
+      if (state.sort === 'latest') {
+        return copy.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)) || a.title.localeCompare(b.title));
+      }
+      if (state.sort === 'title') {
+        return copy.sort((a, b) => a.title.localeCompare(b.title));
+      }
+      return copy.sort((a, b) => {
+        const aFeatured = Number((a.tags || []).includes('featured'));
+        const bFeatured = Number((b.tags || []).includes('featured'));
+        return bFeatured - aFeatured || String(b.createdAt).localeCompare(String(a.createdAt)) || a.title.localeCompare(b.title);
+      });
+    }
+
+    function getVisibleGames() {
+      const query = state.query.trim().toLowerCase();
+      return sortedGames(GAMES.filter((game) => {
+        const genreMatch = state.genre === 'all' || game.genre === state.genre;
+        const statusMatch = state.status === 'all' || game.status === state.status;
+        return genreMatch && statusMatch && matchesQuery(game, query);
+      }));
+    }
+
+    function render() {
+      const games = getVisibleGames();
+      els.count.innerHTML = `<strong>${games.length}</strong> of <strong>${GAMES.length}</strong> games`;
+      els.empty.classList.toggle('visible', games.length === 0);
+      els.grid.innerHTML = games.map(renderCard).join('');
+      els.grid.querySelectorAll('[data-play]').forEach((button) => {
+        button.addEventListener('click', () => playGame(button.dataset.play));
+      });
+    }
+
+    function renderCard(game) {
+      const tags = (game.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+      return `
+        <article class="card">
+          <div class="card-head">
+            <h2>${escapeHtml(game.title)}</h2>
+            <span class="badge">${escapeHtml(game.status)}</span>
+          </div>
+          <p class="description">${escapeHtml(game.description)}</p>
+          <div class="tags">${tags}</div>
+          <div class="meta">
+            <div><strong>Genre:</strong> ${escapeHtml(game.genre)}</div>
+            <div><strong>Controls:</strong> ${escapeHtml(game.controls)}</div>
+            <div><strong>Created:</strong> ${escapeHtml(game.createdAt)}</div>
+          </div>
+          <div class="actions">
+            <button class="button primary" type="button" data-play="${escapeHtml(game.slug)}">Play</button>
+            <a class="button" href="${encodeURI(game.file)}">Open</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function playGame(slug) {
+      const game = GAMES.find((item) => item.slug === slug);
+      if (!game) return;
+      els.playerTitle.textContent = game.title;
+      els.directLink.href = game.file;
+      els.frame.src = game.file;
+      els.player.classList.add('active');
+      document.body.classList.add('playing');
+      els.back.focus({ preventScroll: true });
+    }
+
+    function showLibrary() {
+      document.body.classList.remove('playing');
+      els.player.classList.remove('active');
+      els.frame.src = 'about:blank';
+      els.search.focus({ preventScroll: true });
+    }
+
+    els.search.addEventListener('input', () => {
+      state.query = els.search.value;
+      render();
+    });
+
+    els.genre.addEventListener('change', () => {
+      state.genre = els.genre.value;
+      render();
+    });
+
+    els.status.addEventListener('change', () => {
+      state.status = els.status.value;
+      render();
+    });
+
+    els.sort.addEventListener('change', () => {
+      state.sort = els.sort.value;
+      render();
+    });
+
+    els.back.addEventListener('click', showLibrary);
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.body.classList.contains('playing')) {
+        showLibrary();
+      }
+    });
+
+    setupGenres();
+    setupStatuses();
+    render();
+  </script>
+</body>
+</html>
